@@ -1,6 +1,6 @@
-const express=require('express')
-const router=new express.Router()
-const User=require('../models/user')
+const express = require('express')
+const router = new express.Router()
+const User = require('../models/user')
 
 router.get('/users', async (req, res) => {
     try {
@@ -39,6 +39,8 @@ router.get('/users/:id', async (req, res) => {
 })
 router.post('/users', async (req, res) => {
     const user = new User(req.body)
+
+    const token=await user.generateauthtoken()
     // user.save().then(() => {
     //     res.status(201).send(user)
 
@@ -48,7 +50,7 @@ router.post('/users', async (req, res) => {
 
     try {
         await user.save()
-        res.status(201).send(user)
+        res.status(201).send({user,token})
     } catch (e) {
         res.status(400).send(e)
     }
@@ -69,9 +71,9 @@ router.patch('/users/:id', async (req, res) => {
 
     try {
 
-        const user=await User.findById(_id)
-        updates.forEach((update)=>{
-            user[update]=req.body[update]
+        const user = await User.findById(_id)
+        updates.forEach((update) => {
+            user[update] = req.body[update]
         })
         await user.save()
         // const user = await User.findByIdAndUpdate(_id, req.body, {
@@ -85,7 +87,15 @@ router.patch('/users/:id', async (req, res) => {
         res.status(400).send(e)
     }
 })
-
+router.post('/users/login', async (req, res) => {
+    try {
+        const user = await User.findByCredentials(req.body.email, req.body.password)
+        const token=await user.generateauthtoken()
+        res.send({user,token})
+    } catch (e) {
+        res.status(400).send()
+    }
+})
 
 router.delete('/users/:id', async (req, res) => {
     const _id = req.params.id
@@ -107,4 +117,4 @@ router.delete('/users/:id', async (req, res) => {
 
 
 
-module.exports=router
+module.exports = router
