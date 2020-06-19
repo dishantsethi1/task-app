@@ -52,6 +52,21 @@ const userschema = new mongoose.Schema({
 })
 
 
+userschema.virtual('tasks',{
+    ref:'Task',
+    localField:'_id',
+    foreignField:'owner'
+})
+
+
+userschema.methods.toJSON=function(){
+    const user=this
+    const usero=user.toObject()
+    delete usero.password
+    delete usero.tokens
+    return usero
+}
+
 userschema.methods.generateauthtoken = async function () {
     const user = this
     const token = jwt.sign({

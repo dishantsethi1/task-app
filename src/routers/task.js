@@ -1,5 +1,6 @@
 const express=require('express')
 const router=new express.Router()
+const auth=require('../middleware/auth')
 const Task=require('../models/task')
 
 
@@ -39,8 +40,12 @@ router.get('/tasks/:id', async (req, res) => {
 })
 
 
-router.post('/tasks', async (req, res) => {
-    const task = new Task(req.body)
+router.post('/tasks',auth, async (req, res) => {
+    // const task = new Task(req.body)
+    const task=new Task({
+        ...req.body,
+        owner:req.user._id
+    })
 
     // task.save().then(() => {
     //     res.status(201).send(task)
