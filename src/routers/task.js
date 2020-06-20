@@ -1,10 +1,10 @@
-const express=require('express')
-const router=new express.Router()
-const auth=require('../middleware/auth')
-const Task=require('../models/task')
+const express = require('express')
+const router = new express.Router()
+const auth = require('../middleware/auth')
+const Task = require('../models/task')
 
 
-router.get('/tasks', async (req, res) => {
+router.get('/tasks', auth, async (req, res) => {
     // Task.find({}).then((tasks) => {
     //     res.send(tasks)
     // }).catch((e) => {
@@ -12,7 +12,9 @@ router.get('/tasks', async (req, res) => {
     // })
 
     try {
-        const task = await Task.find({})
+        const task = await Task.find({
+            owner: req.user._id
+        })
         res.send(task)
     } catch (e) {
         res.status(501).send()
@@ -20,7 +22,7 @@ router.get('/tasks', async (req, res) => {
 })
 
 
-router.get('/tasks/:id', async (req, res) => {
+router.get('/tasks/:id', auth, async (req, res) => {
     const _id = req.params.id
     // Task.findById(_id).then((task) => {
     //     if (!task) {
@@ -31,7 +33,11 @@ router.get('/tasks/:id', async (req, res) => {
     //     res.status(500).send()
     // })
     try {
-        const task = await Task.findById(_id)
+        //const task = await Task.findById(_id)
+        const task = await Task.findOne({
+            _id,
+            owner: req.user._id
+        })
         if (!task) return res.status(404).send()
         res.send(task)
     } catch (e) {
@@ -40,11 +46,11 @@ router.get('/tasks/:id', async (req, res) => {
 })
 
 
-router.post('/tasks',auth, async (req, res) => {
+router.post('/tasks', auth, async (req, res) => {
     // const task = new Task(req.body)
-    const task=new Task({
+    const task = new Task({
         ...req.body,
-        owner:req.user._id
+        owner: req.user._id
     })
 
     // task.save().then(() => {
@@ -61,7 +67,7 @@ router.post('/tasks',auth, async (req, res) => {
 })
 
 
-router.patch('/tasks/:id', async (req, res) => {
+router.patch('/tasks/:id',auth, async (req, res) => {
     const updates = Object.keys(req.body)
     const idallowed = ['description', 'completed']
     const isvalid = updates.every((update) => {
@@ -75,17 +81,18 @@ router.patch('/tasks/:id', async (req, res) => {
     const _id = req.params.id
 
     try {
-        // const task = await Task.findByIdAndUpdate(_id, req.body, {
-        //     new: true,
-        //     runValidators: true
-        // })
 
-        const task=await Task.findByIdAndUpdate(_id)
-updates.forEach((update)=>{
-    task[update]=req.body[update]
-})
+        const task = await Task.findOne({
+            _id,
+            owner: req.user._id
+        })
+
 
         if (!task) return res.status(404).send()
+
+        updates.forEach((update) => {
+            task[update] = req.body[update]
+        })
 
         res.send(task)
     } catch (e) {
@@ -94,11 +101,11 @@ updates.forEach((update)=>{
 
 })
 
-router.delete('/tasks/:id', async (req, res) => {
+router.delete('/tasks/:id',auth, async (req, res) => {
     const _id = req.params.id
 
     try {
-        const task = await Task.findByIdAndDelete(_id)
+        const task = await Task.findOneAndDelete({_id,owner:req.user._id})
         if (!task) return res.status(404).send()
         res.send(task)
     } catch (e) {
@@ -107,4 +114,4 @@ router.delete('/tasks/:id', async (req, res) => {
 })
 
 
-module.exports=router
+module.exports = router
