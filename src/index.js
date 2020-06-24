@@ -58,11 +58,11 @@ app.listen(port, () => {
 // main()
 
 
-const multer=require('multer')             //to accept many types of uploads
-const upload=multer({
-    dest:'images'
-})
+// const multer=require('multer')             //to accept many types of uploads
+// const upload=multer({
+//     dest:'images'
+// })
 
-app.post('/upload',upload.single('upload'),(req,res)=>{
-    res.send()
-})
+// app.post('/upload',upload.single('upload'),(req,res)=>{
+//     res.send()
+// })
